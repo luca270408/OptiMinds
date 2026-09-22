@@ -24,7 +24,9 @@ async function main() {
     withPolling: true,
   });
 
-  switch (response.status) {
+  // The live API can return statuses (e.g. "canceled") beyond the SDK's
+  // declared V2RequestStatus union, so switch on the raw string.
+  switch (response.status as string) {
     case 'completed': {
       const videoUrl = response.video?.url;
       if (!videoUrl) {
@@ -35,11 +37,21 @@ async function main() {
       break;
     }
     case 'failed':
-      console.error('Generation failed. Request ID:', response.request_id);
+      // The API's failed-status payload includes an `error` message that the
+      // SDK's V2Response type doesn't declare; read it off the raw response.
+      console.error(
+        'Generation failed. Request ID:',
+        response.request_id,
+        (response as { error?: string }).error ?? ''
+      );
       process.exit(1);
       break;
     case 'nsfw':
       console.error('Generation was rejected by content moderation. Request ID:', response.request_id);
+      process.exit(1);
+      break;
+    case 'canceled':
+      console.error('Generation was canceled. Request ID:', response.request_id);
       process.exit(1);
       break;
     default:
