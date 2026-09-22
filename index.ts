@@ -1,4 +1,6 @@
-import 'dotenv/config';
+import { config as loadEnv } from 'dotenv';
+
+loadEnv({ path: '.env.local' });
 import { higgsfield, config as configureHiggsfield } from '@higgsfield/client/v2';
 
 // HF_CREDENTIALS is loaded from .env.local (format "KEY_ID:KEY_SECRET").
